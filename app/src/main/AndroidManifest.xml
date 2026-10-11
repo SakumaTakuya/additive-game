@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 権限は設計書で認めたものだけ。追加するには設計書の改訂が先（AGENTS.md） -->
+    <uses-permission android:name="android.permission.INTERNET" />            <!-- 天気（設計書03 §2.1） -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />  <!-- 初回点火の直前に文脈付きで要求（設計書04 §4.4） -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" /> <!-- Live Updates。宣言のみ -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />      <!-- アラーム再セット（設計書01 §5） -->
+    <!-- 帰還アラームの権限（SCHEDULE_EXACT_ALARM / USE_EXACT_ALARM か、非exactで足りるか）は E8-01 で決めて追記する -->
+
+    <application
+        android:name=".SeireiApplication"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- ディープリンク app://collect ・ app://home（設計書05 §4） -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="app" android:host="collect" />
+                <data android:scheme="app" android:host="home" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

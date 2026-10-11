@@ -1,0 +1,71 @@
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gradle-check:
+    name: ./gradlew check
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew check --stacktrace
+
+  tla:
+    name: TLA+ 再検査（formal/）
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: tools/tlc.sh
+
+  reference-scripts:
+    name: 参照スクリプト（Rng 参照値・確率シミュレーション）
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 tools/rng_vectors.py
+      - run: python3 tools/roll_sim.py --runs 20000
+
+  protected-paths:
+    name: 保護パスの変更には design-change ラベルが必要
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 変更ファイルを検査
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HAS_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'design-change') }}
+        run: |
+          changed=$(git diff --name-only "$BASE"...HEAD)
+          hits=$(echo "$changed" | grep -E '^(docs/|formal/|\.github/|gradle/libs\.versions\.toml$|core/roll/src/main/kotlin/dev/seirei/core/roll/Rng\.kt$)|(^|/)AGENTS\.md$' || true)
+          if [ -n "$hits" ] && [ "$HAS_LABEL" != "true" ]; then
+            echo "::error::保護パスが変更されています。人間が design-change ラベルを付けた PR だけが通ります。"
+            echo "$hits"
+            exit 1
+          fi
+          echo "OK"

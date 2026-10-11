@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 前景は :core:ui の ic_launcher_fg.png（#19、仮画像）。モノクロレイヤー（#22）は未発注 -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_fg" />
+</adaptive-icon>
