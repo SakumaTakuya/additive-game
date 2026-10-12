@@ -1,6 +1,7 @@
 package dev.seirei.core.model
 
 import java.time.Instant
+import java.util.Collections
 
 const val NAMED_SOURCE: Long = -1L
 const val INITIAL_GIFT_SOURCE: Long = -2L
@@ -33,13 +34,21 @@ data class PartyMember(
 )
 
 /** 順序付き編成。[0] が隊長で、空編成も有効（設計書02 §2・§5.2）。 */
-data class Party(val members: List<PartyMember>) {
+class Party(members: List<PartyMember>) {
+    val members: List<PartyMember> = Collections.unmodifiableList(ArrayList(members))
+
     init {
-        require(members.size <= MAX_MEMBERS) { "A party can contain at most $MAX_MEMBERS members" }
+        require(this.members.size <= MAX_MEMBERS) { "A party can contain at most $MAX_MEMBERS members" }
     }
 
     val leader: PartyMember?
         get() = members.firstOrNull()
+
+    override fun equals(other: Any?): Boolean = other is Party && members == other.members
+
+    override fun hashCode(): Int = members.hashCode()
+
+    override fun toString(): String = "Party(members=$members)"
 
     private companion object {
         const val MAX_MEMBERS = 3

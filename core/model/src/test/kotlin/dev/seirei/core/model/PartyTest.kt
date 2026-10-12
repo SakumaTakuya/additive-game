@@ -26,4 +26,23 @@ class PartyTest {
     fun `empty party is allowed`() {
         assertEquals(null, Party(emptyList()).leader)
     }
+
+    @Test
+    fun `party is unchanged when the source list is mutated`() {
+        val source = mutableListOf(
+            PartyMember(motifId = 1, star = 1, personalityId = 1),
+            PartyMember(motifId = 2, star = 1, personalityId = 1),
+            PartyMember(motifId = 3, star = 1, personalityId = 1),
+        )
+        val party = Party(source)
+
+        source += PartyMember(motifId = 4, star = 1, personalityId = 1)
+
+        assertEquals(3, party.members.size)
+        @Suppress("UNCHECKED_CAST")
+        val exposedMutableMembers = party.members as MutableList<PartyMember>
+        assertThrows(UnsupportedOperationException::class.java) {
+            exposedMutableMembers += PartyMember(motifId = 5, star = 1, personalityId = 1)
+        }
+    }
 }
