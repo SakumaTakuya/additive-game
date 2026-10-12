@@ -17,6 +17,7 @@ rootProject.name = "additive-game"
 
 include(":app")
 include(":core:model")
+include(":core:testing")
 include(":core:domain")
 include(":core:roll")
 include(":core:database")
