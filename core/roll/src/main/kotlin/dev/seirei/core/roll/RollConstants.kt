@@ -38,7 +38,7 @@ data class RollConstants(
             // TODO(DEC-02): 暫定値。鎮め数ごとの追加覚醒確率
             awakenUpsideTable = listOf(0.0, 0.0, 0.0, 0.25, 0.40, 0.50),
             encounterRatePerHour = 3.0,
-            // TODO(DEC-03): 暫定値
+            // TODO(DEC-03): 暫定値（manaBase / manaPerQuell）
             manaPerQuell = 10,
             manaBase = 20,
             memberBase = 0.12,
@@ -63,7 +63,7 @@ data class RollConstants(
             // TODO(DEC-02): 暫定値
             awakenUpsideTable = listOf(0.0, 0.5, 0.5, 0.5, 0.5, 0.5),
             encounterRatePerHour = 120.0,
-            // TODO(DEC-03): 暫定値
+            // TODO(DEC-03): 暫定値（manaBase / manaPerQuell）
             manaPerQuell = 10,
             manaBase = 20,
             memberBase = 0.12,
