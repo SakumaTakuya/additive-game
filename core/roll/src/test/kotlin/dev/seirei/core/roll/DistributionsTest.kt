@@ -15,6 +15,13 @@ class DistributionsTest {
         assertEquals(6.0, variance, 0.15)
     }
 
+    @Test fun `poisson remains correct when exp negative lambda underflows`() {
+        val rng = Rng(0x745)
+        val samples = IntArray(1_000) { rng.poisson(800.0) }
+
+        assertEquals(800.0, samples.average(), 4.0)
+    }
+
     @Test fun `weightedIndex follows the requested proportions`() {
         val rng = Rng(0x51A7)
         val weights = doubleArrayOf(0.85, 0.12, 0.03)
