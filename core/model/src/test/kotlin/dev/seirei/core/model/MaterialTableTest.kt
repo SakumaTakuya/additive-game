@@ -18,6 +18,10 @@ class MaterialTableTest {
         )
 
         assertEquals(expected, Material.entries.map { it to Triple(it.goodWeather, it.badWeather, it.shrineDay) })
+        assertEquals(
+            listOf(Material.FIRE),
+            Material.entries.filter { it.badWeather != null },
+        )
     }
 
     @Test
