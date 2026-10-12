@@ -1,0 +1,7 @@
+# 保護パスのレビュー担当。@OWNER を実際のアカウント名に置き換え、ブランチ保護で「Code Owners のレビュー必須」を有効にする。
+/docs/                                              @SakumaTakuya
+/formal/                                            @SakumaTakuya
+/.github/                                           @SakumaTakuya
+AGENTS.md                                           @SakumaTakuya
+/gradle/libs.versions.toml                          @SakumaTakuya
+/core/roll/src/main/kotlin/dev/seirei/core/roll/Rng.kt  @SakumaTakuya
