@@ -2,6 +2,7 @@ package dev.seirei.ruins
 
 import android.content.Context
 import dev.seirei.core.model.Clock
+import dev.seirei.core.roll.RollConstants
 import java.time.Instant
 
 /**
@@ -16,4 +17,7 @@ class AppContainer(context: Context) {
 
     /** フレーバ（standard / demo）。定数セットの選択はフレーバ別ソースセットの [FlavorConfig] が行う。 */
     val flavor: FlavorConfig = FlavorConfig
+
+    /** ビルドフレーバに対応するロール定数セット（設計書02 §6）。 */
+    val rollConstants: RollConstants = FlavorConfig.rollConstants
 }
