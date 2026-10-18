@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 private val SeireiLightColorScheme = lightColorScheme()
 private val SeireiDarkColorScheme = darkColorScheme()
 
-/** Uses fixed Material 3 colors until the palette is finalized; dark is the default. */
+/** Uses fixed Material 3 colors until the palette is finalized; defaults to the dark palette. */
 @Composable
 fun SeireiTheme(
     darkTheme: Boolean = true,
