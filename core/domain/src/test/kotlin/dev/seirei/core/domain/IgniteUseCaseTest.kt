@@ -13,6 +13,9 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -117,6 +120,30 @@ class IgniteUseCaseTest {
     }
 
     @Test
+    fun `concurrent idle ignitions only replace the current session once`() = runTest {
+        val sessionStore = ConcurrentSessionStore()
+        val partyPresetStore = FakePartyPresetStore(emptyList())
+        val weatherReader = FakeWeatherReader(WeatherKind.UNKNOWN)
+        val seedSource = FakeSeedSource(123L)
+        val useCase = useCase(
+            FakeClock(Instant.parse("2026-10-17T00:00:00Z")),
+            sessionStore,
+            partyPresetStore,
+            weatherReader,
+            seedSource,
+        )
+
+        val results = listOf(
+            async { useCase.invoke() },
+            async { useCase.invoke() },
+        ).awaitAll()
+
+        assertEquals(1, results.count { it == IgniteResult.IGNITED })
+        assertEquals(1, results.count { it == IgniteResult.NO_OP })
+        assertEquals(1, sessionStore.writes.size)
+    }
+
+    @Test
     fun `unknown weather still allows ignition`() = runTest {
         val sessionStore = FakeSessionStore()
 
@@ -162,7 +189,7 @@ class IgniteUseCaseTest {
 
     private fun useCase(
         clock: FakeClock,
-        sessionStore: FakeSessionStore,
+        sessionStore: SessionStore,
         partyPresetStore: FakePartyPresetStore,
         weatherReader: FakeWeatherReader,
         seedSource: FakeSeedSource,
@@ -183,9 +210,41 @@ class IgniteUseCaseTest {
 
         override suspend fun loadCurrent(): ExplorationSession? = current
 
-        override suspend fun save(session: ExplorationSession) {
-            writes += session
-            current = session
+        override suspend fun replaceCurrentIfUnchanged(
+            expectedCurrent: ExplorationSession?,
+            replacement: ExplorationSession,
+        ): Boolean {
+            if (current != expectedCurrent) return false
+            writes += replacement
+            current = replacement
+            return true
+        }
+    }
+
+    private class ConcurrentSessionStore : SessionStore {
+        private var current: ExplorationSession? = null
+        private var loadCount = 0
+        private val bothLoaded = CompletableDeferred<Unit>()
+        val writes = mutableListOf<ExplorationSession>()
+
+        override suspend fun loadCurrent(): ExplorationSession? {
+            val snapshot = synchronized(this) {
+                loadCount += 1
+                if (loadCount == 2) bothLoaded.complete(Unit)
+                current
+            }
+            bothLoaded.await()
+            return snapshot
+        }
+
+        override suspend fun replaceCurrentIfUnchanged(
+            expectedCurrent: ExplorationSession?,
+            replacement: ExplorationSession,
+        ): Boolean = synchronized(this) {
+            if (current != expectedCurrent) return@synchronized false
+            writes += replacement
+            current = replacement
+            true
         }
     }
 

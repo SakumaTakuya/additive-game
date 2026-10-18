@@ -16,7 +16,14 @@ import java.time.ZoneId
 interface SessionStore {
     suspend fun loadCurrent(): ExplorationSession?
 
-    suspend fun save(session: ExplorationSession)
+    /**
+     * Atomically replaces the current row only if it still equals [expectedCurrent].
+     * Returns false when another operation changed the current session after it was loaded.
+     */
+    suspend fun replaceCurrentIfUnchanged(
+        expectedCurrent: ExplorationSession?,
+        replacement: ExplorationSession,
+    ): Boolean
 }
 
 /** Port for the ordered resident IDs used by the previous party preset. */
@@ -73,7 +80,10 @@ class IgniteUseCase(
             ),
             collected = false,
         )
-        sessionStore.save(session)
-        return IgniteResult.IGNITED
+        return if (sessionStore.replaceCurrentIfUnchanged(previous, session)) {
+            IgniteResult.IGNITED
+        } else {
+            IgniteResult.NO_OP
+        }
     }
 }
