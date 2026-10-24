@@ -6,12 +6,22 @@ import org.junit.Test
 
 class ColorDistributionTest {
     @Test fun `resident colors match normal rare and glow targets`() {
+        assertRates(RollConstants.POC, normal = 91.0, rare = 8.0, glow = 1.0)
+        assertRates(RollConstants.DEMO, normal = 75.0, rare = 15.0, glow = 10.0)
+    }
+
+    private fun assertRates(
+        constants: RollConstants,
+        normal: Double,
+        rare: Double,
+        glow: Double,
+    ) {
         val colors = (0 until SAMPLE_COUNT).flatMap { seed ->
-            rollAwakened(seed.toLong(), 0, false, RollConstants.POC).map { it.color }
+            rollAwakened(seed.toLong(), 0, false, constants).map { it.color }
         }
-        assertEquals(91.0, colors.count { it == ColorTier.NORMAL } * 100.0 / colors.size, 0.5)
-        assertEquals(8.0, colors.count { it == ColorTier.RARE } * 100.0 / colors.size, 0.5)
-        assertEquals(1.0, colors.count { it == ColorTier.GLOW } * 100.0 / colors.size, 0.5)
+        assertEquals(normal, colors.count { it == ColorTier.NORMAL } * 100.0 / colors.size, 0.5)
+        assertEquals(rare, colors.count { it == ColorTier.RARE } * 100.0 / colors.size, 0.5)
+        assertEquals(glow, colors.count { it == ColorTier.GLOW } * 100.0 / colors.size, 0.5)
     }
 
     private companion object {

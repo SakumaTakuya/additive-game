@@ -63,9 +63,10 @@ private fun rollResident(
     val personalityId = Rng(subSeed(seed, "$prefix.personality"))
         .nextInt(constants.personalityCount)
     val colorRng = Rng(subSeed(seed, "$prefix.color"))
+    val colorRoll = colorRng.nextDouble()
     val color = when {
-        colorRng.nextDouble() < constants.glowColorRate -> ColorTier.GLOW
-        colorRng.nextDouble() < constants.rareColorRate -> ColorTier.RARE
+        colorRoll < constants.glowColorRate -> ColorTier.GLOW
+        colorRoll < constants.glowColorRate + constants.rareColorRate -> ColorTier.RARE
         else -> ColorTier.NORMAL
     }
     return ResidentRoll(motifId, star, personalityId, color)
