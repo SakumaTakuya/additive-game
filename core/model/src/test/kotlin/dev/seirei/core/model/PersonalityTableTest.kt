@@ -4,24 +4,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/** 性格12種の表（設計書02 §5.3）。表とコードがずれたらコードを直す。 */
 class PersonalityTableTest {
     @Test
-    fun entriesKeepPersistedIdsInDesignOrder() {
-        // This locks the enum order because ordinal is the persisted personality ID.
-        assertEquals(
-            listOf("穏やか", "晴れ好き", "曇り好き", "雨好き", "昼行性", "夜行性", "のんびり屋", "月夜好き", "信心深い", "先導役", "ためこみ屋", "欲張り"),
-            Personality.entries.map { it.displayName },
-        )
-        assertEquals((0..11).toList(), Personality.entries.map { it.id })
-    }
-
-    @Test
-    fun abbreviationsAreUnique() {
-        assertEquals(12, Personality.entries.map { it.abbreviation }.toSet().size)
-    }
-
-    @Test
-    fun personalityTableMatchesDesign() {
+    fun `性格ごとの説明・発動条件・矢印の本数が設計書の表どおり`() {
         val expected = listOf(
             Expected("穏やか", "穏", "いつでも落ち着いて鎮められる", Condition.Always, 1, 0),
             Expected("晴れ好き", "晴", "晴れの日、鎮めがうまくいきやすい", Condition.WeatherIs(WeatherGroup.SUN), 2, 0),
@@ -41,6 +27,21 @@ class PersonalityTableTest {
             Expected(it.displayName, it.abbreviation, it.description, it.condition, it.quellArrows, it.manaArrows, it.effectTarget)
         })
         assertTrue(Personality.entries.all { it.id in 0..11 })
+    }
+
+    @Test
+    fun `略称は12種すべて異なる`() {
+        assertEquals(12, Personality.entries.map { it.abbreviation }.toSet().size)
+    }
+
+    /** ordinal が DB に保存される性格IDなので、並び順を固定する。追加は末尾のみ。 */
+    @Test
+    fun `性格IDは設計書の並び順で0から11`() {
+        assertEquals(
+            listOf("穏やか", "晴れ好き", "曇り好き", "雨好き", "昼行性", "夜行性", "のんびり屋", "月夜好き", "信心深い", "先導役", "ためこみ屋", "欲張り"),
+            Personality.entries.map { it.displayName },
+        )
+        assertEquals((0..11).toList(), Personality.entries.map { it.id })
     }
 
     private data class Expected(

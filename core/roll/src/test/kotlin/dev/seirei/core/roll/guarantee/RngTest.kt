@@ -1,5 +1,9 @@
-package dev.seirei.core.roll
+package dev.seirei.core.roll.guarantee
 
+import dev.seirei.core.roll.Rng
+import dev.seirei.core.roll.fnv1a64
+import dev.seirei.core.roll.splitMix64
+import dev.seirei.core.roll.subSeed
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue

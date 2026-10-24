@@ -4,15 +4,16 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/** モチーフ10種の表（設計書02 §5.3・設計書03 §3）。表とコードがずれたらコードを直す。 */
 class MotifTableTest {
     @Test
-    fun motifIdsAreUniqueAndCoverOneThroughTen() {
+    fun `モチーフIDは1から10まで重複なし`() {
         assertEquals((1..10).toList(), Motif.ALL.map { it.id }.sorted())
         assertEquals(10, Motif.ALL.map { it.id }.toSet().size)
     }
 
     @Test
-    fun motifMaterialAndSizeMatchDesign() {
+    fun `モチーフごとの材質と大きさが設計書の表どおり`() {
         val expected = mapOf(
             1 to (Material.WATER to SizeClass.M),
             2 to (Material.WATER to SizeClass.S),
