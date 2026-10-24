@@ -37,7 +37,8 @@ sealed interface CollectOutcome {
 
 /**
  * Collects only when a fresh read of persisted state derives to RETURNED (design 01 §5).
- * The clock is read once per invocation, so a clock rollback is reevaluated on every request.
+ * The clock is read after each suspending store read, so a rollback during I/O is reevaluated
+ * before any roll or write is performed.
  */
 class CollectUseCase(
     private val clock: Clock,
@@ -47,12 +48,12 @@ class CollectUseCase(
     private val collectStore: CollectStore,
 ) {
     suspend fun invoke(): CollectOutcome {
-        val now = clock.now()
         val session = sessionStore.loadCurrent()
-        if (derivePhase(session, now) != SessionPhase.RETURNED) return CollectOutcome.NoOp
+        if (derivePhase(session, clock.now()) != SessionPhase.RETURNED) return CollectOutcome.NoOp
         checkNotNull(session)
 
         val residents = residentStore.loadByIds(session.partyIds).associateBy(Resident::id)
+        if (derivePhase(session, clock.now()) != SessionPhase.RETURNED) return CollectOutcome.NoOp
         val party = Party(session.partyIds.map { id ->
             val resident = checkNotNull(residents[id]) {
                 "Persisted party references missing resident $id"
@@ -64,6 +65,7 @@ class CollectUseCase(
             )
         })
         val result = RollEngine.resolve(session.seed, session.snapshot, party, constants)
+        if (derivePhase(session, clock.now()) != SessionPhase.RETURNED) return CollectOutcome.NoOp
 
         return when (collectStore.collect(session, result)) {
             CollectWriteResult.COLLECTED -> CollectOutcome.Collected(result)

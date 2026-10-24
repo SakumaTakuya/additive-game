@@ -94,6 +94,26 @@ class CollectUseCaseTest {
     }
 
     @Test
+    fun `clock rollback while loading party prevents collection`() = runTest {
+        val endAt = Instant.parse("2026-10-17T02:00:00Z")
+        val clock = FakeClock(endAt.plusSeconds(1))
+        val session = aSession(endAt = endAt)
+        val sessionStore = FakeSessionStore(session)
+        val residentStore = CollectResidentStore {
+            clock.rewind(Duration.ofSeconds(2))
+            emptyList()
+        }
+        val collectStore = FakeCollectStore(sessionStore)
+
+        assertEquals(
+            CollectOutcome.NoOp,
+            useCase(clock, sessionStore, residentStore, collectStore).invoke(),
+        )
+
+        assertTrue(collectStore.writes.isEmpty())
+    }
+
+    @Test
     fun `refresh reads before end do not write`() = runTest {
         val now = Instant.parse("2026-10-17T01:00:00Z")
         val sessionStore = FakeSessionStore(aSession(endAt = now.plusSeconds(3600)))
@@ -121,7 +141,7 @@ class CollectUseCaseTest {
     private fun useCase(
         clock: FakeClock,
         sessionStore: FakeSessionStore,
-        residentStore: FakeResidentStore,
+        residentStore: CollectResidentStore,
         collectStore: CollectStore,
     ) = CollectUseCase(clock, RollConstants.POC, sessionStore, residentStore, collectStore)
 
