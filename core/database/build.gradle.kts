@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
 
 android {
@@ -8,6 +10,9 @@ android {
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
     }
+    room {
+        schemaDirectory("$projectDir/schemas")
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -15,7 +20,13 @@ android {
 }
 
 dependencies {
-    // Room（ksp・room プラグイン、room-runtime・sqlite-bundled）は E4-01 で追加する
     implementation(project(":core:model"))
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.sqlite.bundled)
+    implementation(libs.kotlinx.serialization.json)
+    ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation("org.robolectric:robolectric:4.17")
+    testRuntimeOnly("androidx.sqlite:sqlite-bundled-jvm:2.7.1")
 }
