@@ -5,6 +5,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LogShapeTest {
+    @Test fun `skipped encounter is distinguishable without extending the frozen event schema`() {
+        val skipped = EncounterOutcome(Encounter(index = 0, motifId = 3, atOffsetMin = 12), success = null)
+        val failed = EncounterOutcome(Encounter(index = 1, motifId = 4, atOffsetMin = 20), success = false)
+
+        assertEquals(
+            listOf(
+                LogEvent.Encountered(index = 0, motifId = 3, atOffsetMin = 12),
+                LogEvent.Encountered(index = 1, motifId = 4, atOffsetMin = 20),
+                LogEvent.Failed(index = 1),
+            ),
+            battleLogEvents(listOf(skipped, failed), manaPerQuell = RollConstants.POC.manaPerQuell),
+        )
+    }
+
     @Test fun `ten thousand seeds follow encounter and awakening event grammar`() {
         repeat(10_000) { seed ->
             val result = RollEngine.resolve(seed.toLong(), noModifierSnapshot, noModifierParty(3), RollConstants.POC)

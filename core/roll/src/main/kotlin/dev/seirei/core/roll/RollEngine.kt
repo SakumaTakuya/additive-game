@@ -28,10 +28,9 @@ object RollEngine {
         snapshot: ContextSnapshot,
         party: Party,
         constants: RollConstants,
-        battle: BattleResolver = MinimalBattleResolver(constants),
     ): ExpeditionResult {
         val encounters = generateEncounters(seed, constants)
-        val battleOutcome = battle.resolve(
+        val battleOutcome = MinimalBattleResolver(constants).resolve(
             encounters = encounters,
             party = party,
             snapshot = snapshot,
@@ -52,18 +51,7 @@ object RollEngine {
         ).toInt()
 
         val log = buildList {
-            battleOutcome.encounters.forEach { outcome ->
-                val encounter = outcome.encounter
-                add(LogEvent.Encountered(encounter.index, encounter.motifId, encounter.atOffsetMin))
-                when (outcome.success) {
-                    true -> {
-                        add(LogEvent.Quelled(encounter.index))
-                        add(LogEvent.Found(encounter.index, constants.manaPerQuell))
-                    }
-                    false -> add(LogEvent.Failed(encounter.index))
-                    null -> add(LogEvent.Failed(encounter.index))
-                }
-            }
+            addAll(battleLogEvents(battleOutcome.encounters, constants.manaPerQuell))
             awakened.indices.forEach { add(LogEvent.Awakened(it)) }
         }
 
@@ -75,3 +63,23 @@ object RollEngine {
         )
     }
 }
+
+/**
+ * A skipped encounter has no outcome event. The frozen LogEvent schema has no Skipped type;
+ * retaining Encountered without Quelled/Failed keeps it distinguishable from a failed battle.
+ */
+internal fun battleLogEvents(outcomes: List<EncounterOutcome>, manaPerQuell: Int): List<LogEvent> =
+    buildList {
+        outcomes.forEach { outcome ->
+            val encounter = outcome.encounter
+            add(LogEvent.Encountered(encounter.index, encounter.motifId, encounter.atOffsetMin))
+            when (outcome.success) {
+                true -> {
+                    add(LogEvent.Quelled(encounter.index))
+                    add(LogEvent.Found(encounter.index, manaPerQuell))
+                }
+                false -> add(LogEvent.Failed(encounter.index))
+                null -> Unit
+            }
+        }
+    }
