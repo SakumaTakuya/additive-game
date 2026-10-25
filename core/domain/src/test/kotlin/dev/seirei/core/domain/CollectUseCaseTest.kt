@@ -19,9 +19,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * 回収 Collect（設計書01 §5・§7、設計書03 §5）。
+ * 永続状態からのガードと、回収要求を一度だけ書き込む契約を確認する。
+ */
 class CollectUseCaseTest {
     @Test
-    fun `returned session is rolled and written once`() = runTest {
+    fun `帰還済みなら保存された編成でロールし、結果を一度だけ書き込む`() = runTest {
         val now = Instant.parse("2026-10-17T02:00:00Z")
         val session = aSession(endAt = now, partyIds = listOf(22L, 11L))
         assertEquals(SessionPhase.RETURNED, derivePhase(session, now))
@@ -51,7 +55,7 @@ class CollectUseCaseTest {
     }
 
     @Test
-    fun `repeated collect after success does not write again`() = runTest {
+    fun `回収後に連打しても二度目は書き込まない`() = runTest {
         val now = Instant.parse("2026-10-17T02:00:00Z")
         val sessionStore = FakeSessionStore(aSession(endAt = now))
         val collectStore = FakeCollectStore(sessionStore)
@@ -64,7 +68,7 @@ class CollectUseCaseTest {
     }
 
     @Test
-    fun `old notification after collection is a no op`() = runTest {
+    fun `回収済みの古い通知から要求しても何も書き込まない`() = runTest {
         val now = Instant.parse("2026-10-17T02:00:00Z")
         val sessionStore = FakeSessionStore(aSession(endAt = now))
         val collectStore = FakeCollectStore(sessionStore)
@@ -76,7 +80,7 @@ class CollectUseCaseTest {
     }
 
     @Test
-    fun `clock rollback after returned refresh prevents collection`() = runTest {
+    fun `帰還表示のあと時計を戻すと回収しない`() = runTest {
         val endAt = Instant.parse("2026-10-17T02:00:00Z")
         val clock = FakeClock(endAt.plusSeconds(1))
         val session = aSession(endAt = endAt)
@@ -94,7 +98,7 @@ class CollectUseCaseTest {
     }
 
     @Test
-    fun `clock rollback while loading party prevents collection`() = runTest {
+    fun `編成住人の読み込み中に時計を戻すと回収しない`() = runTest {
         val endAt = Instant.parse("2026-10-17T02:00:00Z")
         val clock = FakeClock(endAt.plusSeconds(1))
         val session = aSession(endAt = endAt)
@@ -114,7 +118,7 @@ class CollectUseCaseTest {
     }
 
     @Test
-    fun `refresh reads before end do not write`() = runTest {
+    fun `帰還前の読み取りを繰り返しても書き込まない`() = runTest {
         val now = Instant.parse("2026-10-17T01:00:00Z")
         val sessionStore = FakeSessionStore(aSession(endAt = now.plusSeconds(3600)))
         val collectStore = FakeCollectStore(sessionStore)
@@ -126,7 +130,7 @@ class CollectUseCaseTest {
     }
 
     @Test
-    fun `store duplicate receipt is returned as no op`() = runTest {
+    fun `ストアが回収済みを返したら何も書き込まない`() = runTest {
         val now = Instant.parse("2026-10-17T02:00:00Z")
         val session = aSession(endAt = now)
         val sessionStore = FakeSessionStore(session)
