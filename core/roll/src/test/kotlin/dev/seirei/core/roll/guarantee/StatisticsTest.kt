@@ -2,14 +2,17 @@ package dev.seirei.core.roll.guarantee
 
 import dev.seirei.core.model.ColorTier
 import dev.seirei.core.model.ContextSnapshot
+import dev.seirei.core.model.Material
 import dev.seirei.core.model.Party
 import dev.seirei.core.roll.MinimalBattleResolver
 import dev.seirei.core.roll.RollConstants
 import dev.seirei.core.roll.Rng
 import dev.seirei.core.roll.emptyParty
 import dev.seirei.core.roll.generateEncounters
+import dev.seirei.core.roll.motifId
 import dev.seirei.core.roll.neutralParty
 import dev.seirei.core.roll.neutralSnapshot
+import dev.seirei.core.roll.resolveNamed
 import dev.seirei.core.roll.rollAwakened
 import dev.seirei.core.roll.strongWeekendSnapshot
 import dev.seirei.core.roll.strongestParty
@@ -56,6 +59,16 @@ class StatisticsTest {
 
         val boosted = stars(quellCount = 5)
         assertEquals(10.0, boosted.count { it == 5 } * 100.0 / boosted.size, 0.5)
+    }
+
+    /** 設計書02 §4：指名覚醒の★は鎮め補正なしの starBase なので、素の分布（★4+ 15%・★5 3%。§5.4）と同じになる。 */
+    @Test fun `指名覚醒の星の分布は素の分布どおり`() {
+        val stars = (0 until SAMPLE_COUNT).map { seed ->
+            resolveNamed(seed.toLong(), motifId(Material.FIRE), constants).star
+        }
+
+        assertEquals(15.0, stars.count { it >= 4 } * 100.0 / stars.size, 0.5)
+        assertEquals(3.0, stars.count { it == 5 } * 100.0 / stars.size, 0.3)
     }
 
     /** 設計書02 §7：通常91%・レア8%・発光1%（DEMO は 75/15/10）。 */

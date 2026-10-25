@@ -39,6 +39,32 @@ fun rollAwakened(
     return List(count) { index -> rollResident(seed, index, starWeights, constants) }
 }
 
+/**
+ * Rolls one resident for a named awakening (design 02 §4 "指名覚醒API").
+ *
+ * The motif is fixed by the caller. Star, personality and color are rolled as usual,
+ * except the star uses the unboosted [RollConstants.starBase] distribution, and the
+ * streams are `named.*`, fully separate from the normal awakening's `awaken.$i.*`.
+ */
+fun resolveNamed(
+    seed: Long,
+    motifId: Int,
+    constants: RollConstants,
+): ResidentRoll {
+    require(constants.personalityCount > 0) { "personalityCount must be positive" }
+    return rollResident(
+        seed = seed,
+        prefix = "named",
+        motifId = motifId,
+        starBandWeights = doubleArrayOf(
+            constants.starBase.first,
+            constants.starBase.second,
+            constants.starBase.third,
+        ),
+        constants = constants,
+    )
+}
+
 private fun rollResident(
     seed: Long,
     index: Int,
@@ -47,6 +73,16 @@ private fun rollResident(
 ): ResidentRoll {
     val prefix = "awaken.$index"
     val motifId = Rng(subSeed(seed, "$prefix.motif")).nextInt(10) + 1
+    return rollResident(seed, prefix, motifId, starBandWeights, constants)
+}
+
+private fun rollResident(
+    seed: Long,
+    prefix: String,
+    motifId: Int,
+    starBandWeights: DoubleArray,
+    constants: RollConstants,
+): ResidentRoll {
     val starRng = Rng(subSeed(seed, "$prefix.star"))
     val starBand = starRng.weightedIndex(starBandWeights)
     val star = if (starBand == 0) {
