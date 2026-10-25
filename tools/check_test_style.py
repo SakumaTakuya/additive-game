@@ -34,7 +34,8 @@ JAPANESE = re.compile(r"[\u3040-\u30ff\u3400-\u9fff]")
 TEST_FUN = re.compile(r"@Test\s+fun\s+(`[^`]+`|\w+)\s*\(")
 TEST_CLASS = re.compile(r"^(?:internal\s+|open\s+|abstract\s+)*class\s+(\w+Test)\b", re.MULTILINE)
 KDOC_BEFORE = re.compile(r"\*/\s*(?:@[\w.]+(?:\([^)]*\))?\s*)*$")
-BIG_LOOP = re.compile(r"(?:repeat\(\s*|until\s+|IntArray\(\s*|\.\.\s*)([\d_]+)")
+REPEAT_OR_ARRAY = re.compile(r"(?:repeat|IntArray)\(\s*([\d_]+)")
+RANGE = re.compile(r"(-?[\d_]+)\s*(\.\.|until)\s*(-?[\d_]+)")
 
 
 def line_of(text: str, index: int) -> int:
@@ -67,9 +68,16 @@ def check_file(root: Path, path: Path, target: str) -> list[str]:
             for pattern, message in FIXTURE_ONLY.get(target, []):
                 for match in pattern.finditer(text):
                     error(match.start(), message)
-        for match in BIG_LOOP.finditer(text):
-            if int(match.group(1).replace("_", "")) > SPEC_LOOP_LIMIT:
+        for match in REPEAT_OR_ARRAY.finditer(text):
+            count = int(match.group(1).replace("_", ""))
+            if count > SPEC_LOOP_LIMIT:
                 error(match.start(), f"仕様テストのループは {SPEC_LOOP_LIMIT:,} 回まで。統計・網羅の確認は guarantee/ に置く")
+        for match in RANGE.finditer(text):
+            start = int(match.group(1).replace("_", ""))
+            end = int(match.group(3).replace("_", ""))
+            count = max(0, end - start + (1 if match.group(2) == ".." else 0))
+            if count > SPEC_LOOP_LIMIT:
+                error(match.start(), f"仕様テストのループは {SPEC_LOOP_LIMIT:,} 回まで（この範囲は {count:,} 回）。統計・網羅の確認は guarantee/ に置く")
 
     return errors
 
