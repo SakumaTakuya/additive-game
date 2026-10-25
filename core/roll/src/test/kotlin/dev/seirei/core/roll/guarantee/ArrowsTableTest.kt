@@ -11,9 +11,7 @@ import dev.seirei.core.model.WeatherKind
 import dev.seirei.core.roll.ArrowSource
 import dev.seirei.core.roll.Arrows
 import dev.seirei.core.roll.arrowsFor
-import dev.seirei.core.roll.datesCoveringWeekdaysAndMoonConditions
 import dev.seirei.core.roll.motifId
-import dev.seirei.core.roll.referenceMoonAge
 import java.time.DayOfWeek
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
@@ -97,6 +95,25 @@ class ArrowsTableTest {
         }
         if (hasLeader || personality == Personality.LEADER) sources += ArrowSource("隊長の先導", 1, 0)
         return Arrows(sources.sumOf { it.quell }, sources.sumOf { it.mana }, sources)
+    }
+
+    /** 曜日と満月窓の全組み合わせに使う独立した暦参照値（表照合専用）。 */
+    private fun datesCoveringWeekdaysAndMoonConditions(): List<LocalDate> {
+        val found = mutableMapOf<Pair<DayOfWeek, Boolean>, LocalDate>()
+        var date = LocalDate.of(2026, 1, 1)
+        while (found.size < 14) {
+            val isFullMoonWindow = referenceMoonAge(date) in 13.0..<17.0
+            found.putIfAbsent(date.dayOfWeek to isFullMoonWindow, date)
+            date = date.plusDays(1)
+        }
+        return DayOfWeek.entries.flatMap { day -> listOf(false, true).map { found.getValue(day to it) } }
+    }
+
+    /** 期待表の月齢条件を本番実装から独立させるための参照計算。 */
+    private fun referenceMoonAge(date: LocalDate): Double {
+        val julianDay = date.toEpochDay() + 2440588.0
+        val synodicMonth = 29.530588853
+        return ((julianDay - 2451550.26) % synodicMonth + synodicMonth) % synodicMonth
     }
 
     private fun materialRule(material: Material): Triple<WeatherGroup, WeatherGroup?, DayOfWeek> = when (material) {

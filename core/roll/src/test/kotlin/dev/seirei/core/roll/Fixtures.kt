@@ -36,24 +36,6 @@ internal fun dayOf(dayOfWeek: DayOfWeek): LocalDate = LocalDate.of(2026, 1, 12).
 /** 2026-02-03（火）、月齢15.9。満月窓の内側。 */
 internal val fullMoonDay: LocalDate = LocalDate.of(2026, 2, 3)
 
-/** 保証表で曜日と満月窓の全組み合わせを照合するための代表日。 */
-internal fun datesCoveringWeekdaysAndMoonConditions(): List<LocalDate> {
-    val found = mutableMapOf<Pair<DayOfWeek, Boolean>, LocalDate>()
-    var date = LocalDate.of(2026, 1, 1)
-    while (found.size < 14) {
-        val isFullMoonWindow = referenceMoonAge(date) in 13.0..<17.0
-        found.putIfAbsent(date.dayOfWeek to isFullMoonWindow, date)
-        date = date.plusDays(1)
-    }
-    return DayOfWeek.entries.flatMap { day -> listOf(false, true).map { found.getValue(day to it) } }
-}
-
-internal fun referenceMoonAge(date: LocalDate): Double {
-    val julianDay = date.toEpochDay() + 2440588.0
-    val synodicMonth = 29.530588853
-    return ((julianDay - 2451550.26) % synodicMonth + synodicMonth) % synodicMonth
-}
-
 /** 点火時の状況。省略した項目は「天気未取得・昼・月曜」で、どれも修正値を発動させにくい側に倒してある。 */
 internal fun snapshot(
     weather: WeatherKind = WeatherKind.UNKNOWN,
