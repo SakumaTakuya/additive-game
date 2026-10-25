@@ -1,4 +1,4 @@
-package dev.seirei.core.roll
+package dev.seirei.core.roll.guarantee
 
 import dev.seirei.core.model.ContextSnapshot
 import dev.seirei.core.model.Material
@@ -8,21 +8,27 @@ import dev.seirei.core.model.Personality
 import dev.seirei.core.model.TimeBand
 import dev.seirei.core.model.WeatherGroup
 import dev.seirei.core.model.WeatherKind
-import dev.seirei.core.model.moonAge
-import dev.seirei.core.model.shrineMaterialOf
+import dev.seirei.core.roll.ArrowSource
+import dev.seirei.core.roll.Arrows
+import dev.seirei.core.roll.arrowsFor
+import dev.seirei.core.roll.datesCoveringWeekdaysAndMoonConditions
+import dev.seirei.core.roll.motifId
+import dev.seirei.core.roll.referenceMoonAge
 import java.time.DayOfWeek
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+/**
+ * 修正値表（設計書02 §5.3・§8）。性格12×材質7×天気5×時間帯3×曜日7×満月の有無×先導役の有無の全組み合わせで、
+ * `arrowsFor` の出力が、このファイル内で独立に書き下した規則（[expected]）と一致すること。
+ *
+ * 規則の読み物としては ArrowsSpecTest を読むこと。ここは「漏れなく一致する」ことの保証で、
+ * enum の値を足したり規則を変えたりしたら、[expected] を意識して更新する必要がある。
+ */
 class ArrowsTableTest {
-    /**
-     * This table deliberately states the design rules independently of arrowsFor().
-     * It covers each personality, material, weather, time band, weekday, moon condition,
-     * and leader presence; adding an enum value or changing a rule requires a conscious update.
-     */
     @Test
-    fun arrowsMatchIndependentRuleTableAcrossAllInputs() {
+    fun `全組み合わせでarrowsForが独立に書いた規則表と一致する`() {
         val dates = datesCoveringWeekdaysAndMoonConditions()
         var cases = 0
 
@@ -32,8 +38,8 @@ class ArrowsTableTest {
                     for (timeBand in TimeBand.entries) {
                         for (date in dates) {
                             for (hasLeader in listOf(false, true)) {
-                                val subject = PartyMember(knownMotifId(material), 3, personality.id)
-                                val leader = if (hasLeader) PartyMember(1, 3, Personality.LEADER.id) else null
+                                val subject = PartyMember(motifId(material), 3, personality.id)
+                                val leader = if (hasLeader) PartyMember(motifId(Material.WATER), 3, Personality.LEADER.id) else null
                                 val members = if (leader == null) listOf(subject) else listOf(leader, subject)
                                 val slot = if (leader == null) 0 else 1
                                 val party = Party(members)
@@ -52,35 +58,6 @@ class ArrowsTableTest {
             }
         }
         assertEquals(12 * 7 * 5 * 3 * 14 * 2, cases)
-    }
-
-    @Test
-    fun representativeRainyThursdaySourcesAreExposed() {
-        val date = LocalDate.of(2026, 10, 15) // Thursday
-        val snapshot = ContextSnapshot(date, TimeBand.EVENING, WeatherKind.RAIN)
-
-        assertEquals(Arrows(2, 0, listOf(
-            ArrowSource("雨", 1, 0),
-            ArrowSource("隊長の先導", 1, 0),
-        )), arrowsFor(1, Party(listOf(
-            PartyMember(1, 3, Personality.LEADER.id), PartyMember(3, 3, Personality.DIURNAL.id),
-        )), snapshot))
-        assertEquals(Arrows(0, 0, listOf(
-            ArrowSource("雨", -1, 0),
-            ArrowSource("隊長の先導", 1, 0),
-        )), arrowsFor(1, Party(listOf(PartyMember(1, 3, Personality.LEADER.id), PartyMember(6, 3, Personality.DIURNAL.id))), snapshot))
-        assertEquals(Arrows(2, 0, listOf(
-            ArrowSource("木曜の祭壇", 1, 0),
-            ArrowSource("隊長の先導", 1, 0),
-        )), arrowsFor(1, Party(listOf(PartyMember(1, 3, Personality.LEADER.id), PartyMember(10, 3, Personality.DIURNAL.id))), snapshot))
-    }
-
-    @Test
-    fun worstCaseRainOnFireWithGreedyAndNoLeaderIsMinusTwo() {
-        val party = Party(listOf(PartyMember(6, 1, Personality.GREEDY.id)))
-        val snapshot = ContextSnapshot(LocalDate.of(2026, 10, 15), TimeBand.EVENING, WeatherKind.RAIN)
-
-        assertEquals(-2, arrowsFor(0, party, snapshot).quell)
     }
 
     private fun expected(
@@ -120,33 +97,6 @@ class ArrowsTableTest {
         }
         if (hasLeader || personality == Personality.LEADER) sources += ArrowSource("隊長の先導", 1, 0)
         return Arrows(sources.sumOf { it.quell }, sources.sumOf { it.mana }, sources)
-    }
-
-    private fun datesCoveringWeekdaysAndMoonConditions(): List<LocalDate> {
-        val found = mutableMapOf<Pair<DayOfWeek, Boolean>, LocalDate>()
-        var date = LocalDate.of(2026, 1, 1)
-        while (found.size < 14) {
-            val isFullMoonWindow = referenceMoonAge(date) in 13.0..<17.0
-            found.putIfAbsent(date.dayOfWeek to isFullMoonWindow, date)
-            date = date.plusDays(1)
-        }
-        return DayOfWeek.entries.flatMap { day -> listOf(false, true).map { found.getValue(day to it) } }
-    }
-
-    private fun referenceMoonAge(date: LocalDate): Double {
-        val julianDay = date.toEpochDay() + 2440588.0
-        val synodicMonth = 29.530588853
-        return ((julianDay - 2451550.26) % synodicMonth + synodicMonth) % synodicMonth
-    }
-
-    private fun knownMotifId(material: Material): Int = when (material) {
-        Material.WATER -> 1
-        Material.EARTHENWARE -> 3
-        Material.STONE -> 5
-        Material.BONE -> 4
-        Material.METAL -> 9
-        Material.FIRE -> 6
-        Material.PLANT -> 10
     }
 
     private fun materialRule(material: Material): Triple<WeatherGroup, WeatherGroup?, DayOfWeek> = when (material) {

@@ -1,32 +1,31 @@
-package dev.seirei.core.roll
+package dev.seirei.core.roll.guarantee
 
+import dev.seirei.core.roll.RollConstants
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * 定数テーブルの健全性とピン留め（設計書02 §6・§8 不変条件）。
+ * 定数を変えるときは AGENTS.md §8 の手順（tools/roll_sim.py で確認 → RollConstants → このテスト）に従う。
+ */
 class RollConstantsTest {
-    @Test
-    fun `POC and DEMO star weights and low star breakdowns sum to one`() {
-        listOf(RollConstants.POC, RollConstants.DEMO).forEach { constants ->
+    private val flavors = listOf(RollConstants.POC, RollConstants.DEMO)
+
+    @Test fun `★の重みはPOC・DEMOとも合計1`() {
+        flavors.forEach { constants ->
             assertEquals(1.0, constants.starBase.sum(), 1e-12)
             assertEquals(1.0, constants.starBoosted.sum(), 1e-12)
             assertEquals(1.0, constants.star1To3.sum(), 1e-12)
         }
     }
 
-    @Test
-    fun `all probability values are between zero and one`() {
-        listOf(RollConstants.POC, RollConstants.DEMO).forEach { constants ->
+    @Test fun `確率の定数はすべて0以上1以下`() {
+        flavors.forEach { constants ->
             val probabilities = listOf(
-                constants.starBase.first,
-                constants.starBase.second,
-                constants.starBase.third,
-                constants.starBoosted.first,
-                constants.starBoosted.second,
-                constants.starBoosted.third,
-                constants.star1To3.first,
-                constants.star1To3.second,
-                constants.star1To3.third,
+                constants.starBase.first, constants.starBase.second, constants.starBase.third,
+                constants.starBoosted.first, constants.starBoosted.second, constants.starBoosted.third,
+                constants.star1To3.first, constants.star1To3.second, constants.star1To3.third,
                 constants.rareColorRate,
                 constants.glowColorRate,
                 constants.manaArrowRate,
@@ -42,8 +41,8 @@ class RollConstantsTest {
         }
     }
 
-    @Test
-    fun `POC values match roll simulation inputs`() {
+    /** tools/roll_sim.py の入力と同じ値であることを固定する。意図した変更のときだけ書き換える。 */
+    @Test fun `POCの値はロールシミュレーションの入力と一致する`() {
         val poc = RollConstants.POC
 
         assertEquals(120, poc.expeditionMinutes)

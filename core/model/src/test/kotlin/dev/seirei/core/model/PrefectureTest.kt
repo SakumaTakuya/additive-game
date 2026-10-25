@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/** 都道府県と気象庁予報区コードの対応（設計書03 §2.1）。 */
 class PrefectureTest {
     @Test
     fun `47都道府県の予報区コードは6桁で重複しない`() {
