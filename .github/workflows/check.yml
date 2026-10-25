@@ -48,6 +48,17 @@ jobs:
       - run: python3 tools/rng_vectors.py
       - run: python3 tools/roll_sim.py --runs 20000
 
+  test-style:
+    name: テストの書き方（AGENTS.md §9）
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 tools/check_test_style.py
+
   protected-paths:
     name: 保護パスの変更には design-change ラベルが必要
     if: github.event_name == 'pull_request'
