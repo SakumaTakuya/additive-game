@@ -8,4 +8,4 @@
 - ストリームラベルの一覧（凍結）：`encounter` / `quell` / `awaken.count` / `awaken.$i.star` / `awaken.$i.personality` / `awaken.$i.color` / `awaken.$i.motif` / `named.star` / `named.personality` / `named.color`
 - `arrowsFor()` は UI のプレビューと MinimalBattleResolver が同じものを呼ぶ。UI 用に別の判定を書かない
 - 定数はすべて `RollConstants` に置く。性格・材質の対応表は定数ではなくルールなので `:core:model` の enum に置く
-- テスト：ゴールデン・決定論・不変条件・統計・ストリーム独立・修正値表・プレビュー一致・月齢（02 §8）
+- テスト：ゴールデン・決定論・不変条件・統計・ストリーム独立・修正値表・プレビュー一致・月齢（02 §8）。仕様テストと `guarantee/` の分け方、日本語のテスト名、期待値の導出コメントなどはルート `AGENTS.md` §9「テストの書き方」に従う
