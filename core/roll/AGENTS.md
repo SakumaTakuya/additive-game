@@ -9,3 +9,4 @@
 - `arrowsFor()` は UI のプレビューと MinimalBattleResolver が同じものを呼ぶ。UI 用に別の判定を書かない
 - 定数はすべて `RollConstants` に置く。性格・材質の対応表は定数ではなくルールなので `:core:model` の enum に置く
 - テスト：ゴールデン・決定論・不変条件・統計・ストリーム独立・修正値表・プレビュー一致・月齢（02 §8）。仕様テストと `guarantee/` の分け方、日本語のテスト名、期待値の導出コメントなどはルート `AGENTS.md` §9「テストの書き方」に従う
+- ゴールデンテスト（`guarantee/GoldenTest`）の期待値は `src/test/resources/golden/` に置く。意図した変更で再生成するときだけ `GOLDEN_UPDATE=1 ./gradlew :core:roll:test --tests "dev.seirei.core.roll.guarantee.GoldenTest"` を実行し、差分を全行レビューしてからコミットする。通常の `check` では再生成しない
