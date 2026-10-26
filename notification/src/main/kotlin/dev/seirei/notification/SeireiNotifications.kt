@@ -53,12 +53,18 @@ object SeireiNotifications {
             builder.setRequestPromotedOngoing(true)
         }
         spec.progress?.let { progress ->
-            val style = NotificationCompat.ProgressStyle()
-                .setProgress((progress * 100).toInt())
-            spec.startIcon?.let { style.setProgressStartIcon(iconCompat(context, it)) }
-            spec.endIcon?.let { style.setProgressEndIcon(iconCompat(context, it)) }
-            spec.tracker?.let { style.setProgressTrackerIcon(trackerIconCompat(context, it)) }
-            builder.setStyle(style)
+            val percent = (progress * 100).toInt()
+            if (android.os.Build.VERSION.SDK_INT >= 36) {
+                // ProgressStyle renders only on API 36+ (design 04 §4.3).
+                val style = NotificationCompat.ProgressStyle().setProgress(percent)
+                spec.startIcon?.let { style.setProgressStartIcon(iconCompat(context, it)) }
+                spec.endIcon?.let { style.setProgressEndIcon(iconCompat(context, it)) }
+                spec.tracker?.let { style.setProgressTrackerIcon(trackerIconCompat(context, it)) }
+                builder.setStyle(style)
+            } else {
+                // API 34-35 fallback: the standard progress bar (design 04 §4.3).
+                builder.setProgress(100, percent, false)
+            }
         }
         spec.deepLink?.let { deepLink ->
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(deepLink))
