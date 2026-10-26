@@ -18,8 +18,10 @@ interface NamedAwakenStore {
 
     /**
      * Atomically inserts the resident for [roll] (source `NAMED_SOURCE`) and subtracts
-     * [cost] mana. Must return false without writing if the balance no longer covers
-     * [cost], including when concurrent calls race.
+     * [cost] mana. The guards are rechecked inside the same transaction: it must
+     * return false without writing if the balance no longer covers [cost] or the
+     * motif is no longer discovered at write time, including when concurrent
+     * calls race.
      */
     suspend fun awaken(roll: ResidentRoll, acquiredAt: Instant, cost: Int): Boolean
 }

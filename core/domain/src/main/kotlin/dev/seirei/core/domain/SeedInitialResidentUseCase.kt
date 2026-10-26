@@ -12,8 +12,9 @@ interface SeedInitialResidentStore {
 
     /**
      * Atomically inserts the resident for [roll] (source `INITIAL_GIFT_SOURCE`).
-     * Must return false without writing if a resident already exists, including
-     * when concurrent calls race.
+     * The §4.6 guard is rechecked inside the same transaction: it must return
+     * false without writing if a resident already exists or a session row has
+     * appeared since the preview, including when concurrent calls race.
      */
     suspend fun insertInitial(roll: ResidentRoll, acquiredAt: Instant): Boolean
 }

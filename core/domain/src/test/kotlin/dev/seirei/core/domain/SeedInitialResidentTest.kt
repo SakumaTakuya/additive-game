@@ -71,6 +71,17 @@ class SeedInitialResidentTest {
         assertTrue(store.inserted.isEmpty())
     }
 
+    @Test
+    fun `書き込み時点でセッションが現れていたら付与しない`() = runTest {
+        // 起動と並行して点火され、確認後にセッションができたケースを書き込み側が再チェックする。
+        val store = FakeSeedStore(count = 0, sessionAppearsOnWrite = true)
+
+        val outcome = useCase(session = null, store = store).invoke()
+
+        assertEquals(SeedInitialOutcome.NoOp, outcome)
+        assertTrue(store.inserted.isEmpty())
+    }
+
     private fun useCase(
         session: ExplorationSession?,
         store: SeedInitialResidentStore,
@@ -93,7 +104,10 @@ class SeedInitialResidentTest {
         ): Boolean = false
     }
 
-    private class FakeSeedStore(count: Int) : SeedInitialResidentStore {
+    private class FakeSeedStore(
+        count: Int,
+        private val sessionAppearsOnWrite: Boolean = false,
+    ) : SeedInitialResidentStore {
         var count: Int = count
             private set
         val inserted = mutableListOf<Pair<ResidentRoll, Instant>>()
@@ -101,7 +115,8 @@ class SeedInitialResidentTest {
         override suspend fun countResidents(): Int = count
 
         override suspend fun insertInitial(roll: ResidentRoll, acquiredAt: Instant): Boolean {
-            if (count > 0) return false
+            // Recheck the §4.6 guard as of the write, like the real transaction.
+            if (count > 0 || sessionAppearsOnWrite) return false
             count++
             inserted += roll to acquiredAt
             return true

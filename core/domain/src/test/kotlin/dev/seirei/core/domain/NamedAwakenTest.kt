@@ -63,6 +63,16 @@ class NamedAwakenTest {
         assertTrue(store.awakened.isEmpty())
     }
 
+    @Test
+    fun `書き込み時点で未発見になっていたら何もしない`() = runTest {
+        // 最後の1体が並行して魔力に還され、発見が失われたケースを書き込み側が再チェックする。
+        val store = FakeNamedAwakenStore(balance = 400, discovered = setOf(1), undiscoverOnWrite = true)
+
+        assertEquals(NamedAwakenOutcome.NoOp, useCase(store).invoke(motifId = 1))
+        assertEquals(400, store.balance)
+        assertTrue(store.awakened.isEmpty())
+    }
+
     private fun useCase(store: NamedAwakenStore): NamedAwakenUseCase = NamedAwakenUseCase(
         clock = FakeClock(now),
         constants = RollConstants.POC,
@@ -74,6 +84,7 @@ class NamedAwakenTest {
         balance: Int,
         private val discovered: Set<Int>,
         private val failWrites: Boolean = false,
+        private val undiscoverOnWrite: Boolean = false,
     ) : NamedAwakenStore {
         var balance: Int = balance
             private set
@@ -84,7 +95,9 @@ class NamedAwakenTest {
         override suspend fun loadDiscoveredMotifIds(): Set<Int> = discovered
 
         override suspend fun awaken(roll: ResidentRoll, acquiredAt: Instant, cost: Int): Boolean {
+            // Recheck the guards as of the write, like the real transaction.
             if (failWrites || balance < cost) return false
+            if (undiscoverOnWrite || roll.motifId !in discovered) return false
             balance -= cost
             awakened += Triple(roll, acquiredAt, cost)
             return true
