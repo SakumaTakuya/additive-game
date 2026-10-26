@@ -8,6 +8,9 @@ import dev.seirei.core.testing.aSession
 import dev.seirei.core.testing.aSnapshot
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
@@ -20,7 +23,7 @@ import org.junit.Test
  * 配置は1時間粒度で変わる。表示上限を超えた分は日替わりローテーション。
  */
 class WidgetSceneTest {
-    private val noon: Instant = Instant.parse("2026-10-25T12:00:00Z")
+    private val noon: ZonedDateTime = Instant.parse("2026-10-25T12:00:00Z").atZone(ZoneOffset.UTC)
     private val today: ContextSnapshot = aSnapshot(date = LocalDate.of(2026, 10, 25))
 
     @Test
@@ -52,7 +55,7 @@ class WidgetSceneTest {
     fun `探索中は、入力に含まれていても編成メンバーは場面に出ない`() {
         val partyMember = aResident(id = 1L)
         val caretaker = aResident(id = 2L)
-        val session = aSession(partyIds = listOf(1L), endAt = noon.plusSeconds(3_600))
+        val session = aSession(partyIds = listOf(1L), endAt = noon.toInstant().plusSeconds(3_600))
 
         val scene = deriveWidgetScene(
             session,
@@ -144,10 +147,26 @@ class WidgetSceneTest {
     }
 
     @Test
+    fun `時間帯はnowのタイムゾーンの現地時刻で決まる`() {
+        // 同じ瞬間（12:00Z）でも、東京では21時なので夜になる
+        val tokyo = Instant.parse("2026-10-25T12:00:00Z").atZone(ZoneId.of("Asia/Tokyo"))
+
+        val scene = deriveWidgetScene(
+            null,
+            listOf(aResident(id = 1L)),
+            today,
+            tokyo,
+            WidgetSize.MEDIUM,
+        )
+
+        assertEquals(TimeBand.NIGHT, scene.skyTimeBand)
+    }
+
+    @Test
     fun `探索中はスナップショットの天気が空になり、袋の段階が進む`() {
         val session = aSession(
-            startedAt = noon.minusSeconds(3_600),
-            endAt = noon.plusSeconds(3_600),
+            startedAt = noon.toInstant().minusSeconds(3_600),
+            endAt = noon.toInstant().plusSeconds(3_600),
             partyIds = listOf(9L),
         )
         val rainy = session.snapshot.copy(weather = WeatherKind.RAIN)

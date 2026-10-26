@@ -13,7 +13,7 @@ import dev.seirei.core.model.timeBandOf
 import dev.seirei.core.roll.Rng
 import dev.seirei.core.roll.subSeed
 import java.time.Instant
-import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 /** Widget のグリッドサイズと住人の表示容量（設計書04 §3.1。値は叩き台）。 */
 enum class WidgetSize(val capacitySlots: Int) {
@@ -71,16 +71,16 @@ data class WidgetScene(
  * - 立ち位置の抽選は1時間粒度（DEC-12 暫定）：`Rng(subSeed(epochHour, "widget.scene"))`
  * - 探索中は編成メンバーを入力に含まれていても除外する（留守番組の風景になる）
  * - 空の天気は [snapshotOrToday] の値（探索中はセッションのスナップショットを渡すのが呼び出し側の約束）。
- *   `UNKNOWN` は晴れで描く。時間帯は常に [now] から取る
+ *   `UNKNOWN` は晴れで描く。時間帯は常に [now] のタイムゾーンでの現地時刻から取る
  */
 fun deriveWidgetScene(
     session: ExplorationSession?,
     caretakers: List<Resident>,
     snapshotOrToday: ContextSnapshot,
-    now: Instant,
+    now: ZonedDateTime,
     sizeClass: WidgetSize,
 ): WidgetScene {
-    val phase = derivePhase(session, now)
+    val phase = derivePhase(session, now.toInstant())
     val candidates = if (phase == SessionPhase.EXPLORING && session != null) {
         val partyIds = session.partyIds.toSet()
         caretakers.filter { it.id !in partyIds }
@@ -89,7 +89,7 @@ fun deriveWidgetScene(
     }
 
     val selected = selectForToday(candidates, snapshotOrToday, sizeClass.capacitySlots)
-    val placed = placeForThisHour(selected, now, sizeClass.capacitySlots)
+    val placed = placeForThisHour(selected, now.toInstant(), sizeClass.capacitySlots)
     val props = fillWithProps(placed, sizeClass.capacitySlots)
 
     return WidgetScene(
@@ -99,11 +99,11 @@ fun deriveWidgetScene(
             WidgetSize.LARGE -> WidgetBackground.RUINS_LARGE
         },
         skyWeather = snapshotOrToday.weather.takeIf { it != WeatherKind.UNKNOWN } ?: WeatherKind.SUNNY,
-        skyTimeBand = timeBandOf(now.atOffset(ZoneOffset.UTC).toLocalTime()),
+        skyTimeBand = timeBandOf(now.toLocalTime()),
         residents = placed,
         props = props,
         overflowCount = candidates.size - selected.size,
-        bagStage = bagStage(session, phase, now),
+        bagStage = bagStage(session, phase, now.toInstant()),
     )
 }
 
