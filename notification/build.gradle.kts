@@ -21,4 +21,5 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.work.runtime)
     testImplementation(libs.junit)
+    testImplementation(project(":core:testing"))
 }
