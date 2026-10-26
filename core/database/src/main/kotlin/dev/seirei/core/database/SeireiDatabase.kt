@@ -23,6 +23,7 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 @TypeConverters(RoomConverters::class)
 abstract class SeireiDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
+    abstract fun collectDao(): CollectDao
     abstract fun residentDao(): ResidentDao
     abstract fun manaDao(): ManaDao
     abstract fun collectionReceiptDao(): CollectionReceiptDao
