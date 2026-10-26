@@ -18,27 +18,27 @@ class DuplicateCollectionException(sessionId: Long) :
  * a duplicate collect fails and rolls everything back, so rewards never double.
  */
 @Dao
-interface CollectDao {
+abstract class CollectDao {
     @Query("SELECT EXISTS(SELECT 1 FROM collection_receipt WHERE sessionId = :sessionId)")
-    suspend fun receiptExists(sessionId: Long): Boolean
+    abstract suspend fun receiptExists(sessionId: Long): Boolean
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insertReceipt(receipt: CollectionReceiptEntity)
+    abstract suspend fun insertReceipt(receipt: CollectionReceiptEntity)
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insertResidents(residents: List<ResidentEntity>)
+    abstract suspend fun insertResidents(residents: List<ResidentEntity>)
 
     @Query("SELECT * FROM mana WHERE id = 1")
-    suspend fun getMana(): ManaEntity?
+    abstract suspend fun getMana(): ManaEntity?
 
     @Upsert
-    suspend fun upsertMana(mana: ManaEntity)
+    abstract suspend fun upsertMana(mana: ManaEntity)
 
     @Query("UPDATE session SET collected = 1 WHERE id = :sessionId")
-    suspend fun markCollected(sessionId: Long)
+    abstract suspend fun markCollected(sessionId: Long)
 
     @Transaction
-    suspend fun collect(sessionId: Long, awakened: List<ResidentEntity>, manaGained: Int) {
+    open suspend fun collect(sessionId: Long, awakened: List<ResidentEntity>, manaGained: Int) {
         if (receiptExists(sessionId)) throw DuplicateCollectionException(sessionId)
         try {
             insertReceipt(CollectionReceiptEntity(sessionId = sessionId))
