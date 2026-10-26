@@ -46,7 +46,8 @@ object SeireiNotifications {
         spec.whenMillis?.let { whenMillis ->
             builder.setWhen(whenMillis)
                 .setShowWhen(true)
-                .setUsesChronometerCountDown(true)
+                .setUsesChronometer(true)
+                .setChronometerCountDown(true)
         }
         if (spec.requestPromoted) {
             builder.setRequestPromotedOngoing(true)
