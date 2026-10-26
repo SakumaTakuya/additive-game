@@ -16,6 +16,7 @@ import java.time.Instant
 import java.time.ZonedDateTime
 
 /** Widget のグリッドサイズと住人の表示容量（設計書04 §3.1。値は叩き台）。 */
+// TODO(VER-04): 叩き台。表示上限の実数は実機検証（#55）で確定する
 enum class WidgetSize(val capacitySlots: Int) {
     SMALL(2),
     MEDIUM(4),
@@ -70,6 +71,7 @@ data class WidgetScene(
  *   容量（L級は2枠換算）に収まる分だけを選ぶ。同じ日なら全 Widget で同じ顔ぶれになる
  * - 立ち位置の抽選は1時間粒度（DEC-12 暫定）：`Rng(subSeed(epochHour, "widget.scene"))`
  * - 探索中は編成メンバーを入力に含まれていても除外する（留守番組の風景になる）
+ * - 帰還時は編成メンバーを優先表示し、残り枠を留守番組で埋める（設計書01 §6.1）
  * - 空の天気は [snapshotOrToday] の値（探索中はセッションのスナップショットを渡すのが呼び出し側の約束）。
  *   `UNKNOWN` は晴れで描く。時間帯は常に [now] のタイムゾーンでの現地時刻から取る
  */
@@ -88,7 +90,11 @@ fun deriveWidgetScene(
         caretakers
     }
 
-    val selected = selectForToday(candidates, snapshotOrToday, sizeClass.capacitySlots)
+    val selected = if (phase == SessionPhase.RETURNED && session != null) {
+        selectReturned(caretakers, session.partyIds, snapshotOrToday, sizeClass.capacitySlots)
+    } else {
+        selectForToday(candidates, snapshotOrToday, sizeClass.capacitySlots)
+    }
     val placed = placeForThisHour(selected, now.toInstant(), sizeClass.capacitySlots)
     val props = fillWithProps(placed, sizeClass.capacitySlots)
 
@@ -105,6 +111,36 @@ fun deriveWidgetScene(
         overflowCount = candidates.size - selected.size,
         bagStage = bagStage(session, phase, now.toInstant()),
     )
+}
+
+/**
+ * 帰還時の選抜：編成メンバーを優先的に確保し、残り枠を留守番組の日替わりローテーションで埋める
+ * （設計書01 §6.1「編成メンバー帰宅」）。
+ */
+private fun selectReturned(
+    residents: List<Resident>,
+    partyIds: List<Long>,
+    snapshotOrToday: ContextSnapshot,
+    capacitySlots: Int,
+): List<Resident> {
+    val byId = residents.associateBy { it.id }
+    val selected = mutableListOf<Resident>()
+    var used = 0
+    for (id in partyIds) {
+        val member = byId[id] ?: continue
+        val slots = slotsOf(member)
+        if (used + slots <= capacitySlots) {
+            selected += member
+            used += slots
+        }
+    }
+    val partyIdSet = partyIds.toSet()
+    val rest = selectForToday(
+        residents.filter { it.id !in partyIdSet },
+        snapshotOrToday,
+        capacitySlots - used,
+    )
+    return selected + rest
 }
 
 /** 日替わりローテーション：日付で決定的にシャッフルしてから容量に収まる分を選ぶ。 */

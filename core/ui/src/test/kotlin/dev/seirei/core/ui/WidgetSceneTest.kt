@@ -147,6 +147,24 @@ class WidgetSceneTest {
     }
 
     @Test
+    fun `帰還時は編成メンバーが優先して表示される`() {
+        val party = listOf(9L, 8L)
+        val residents = (1L..7L).map { aResident(id = it) } + party.map { aResident(id = it) }
+        val session = aSession(
+            startedAt = noon.toInstant().minusSeconds(7_200),
+            endAt = noon.toInstant().minusSeconds(600),
+            partyIds = party,
+        )
+
+        val scene = deriveWidgetScene(session, residents, today, noon, WidgetSize.LARGE)
+
+        val shown = scene.residents.map { it.resident.id }
+        assertTrue(shown.containsAll(party))
+        assertEquals(7, scene.residents.size)
+        assertEquals(2, scene.overflowCount)
+    }
+
+    @Test
     fun `時間帯はnowのタイムゾーンの現地時刻で決まる`() {
         // 同じ瞬間（12:00Z）でも、東京では21時なので夜になる
         val tokyo = Instant.parse("2026-10-25T12:00:00Z").atZone(ZoneId.of("Asia/Tokyo"))
