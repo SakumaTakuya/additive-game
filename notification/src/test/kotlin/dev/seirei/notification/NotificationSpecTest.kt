@@ -35,7 +35,7 @@ class NotificationSpecTest {
         assertEquals(endAt.toEpochMilli(), spec?.whenMillis)
         assertTrue(spec?.ongoing == true)
         assertTrue(spec?.requestPromoted == true)
-        assertNull(spec?.deepLink)
+        assertEquals("app://home", spec?.deepLink)
     }
 
     @Test

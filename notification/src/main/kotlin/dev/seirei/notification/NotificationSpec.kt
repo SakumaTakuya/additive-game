@@ -60,7 +60,7 @@ fun notificationSpec(state: NotifUiState?): NotificationSpec? = when (state) {
         whenMillis = state.endAt.toEpochMilli(),
         ongoing = true,
         requestPromoted = true,
-        deepLink = null,
+        deepLink = "app://home",
     )
 
     NotifUiState.Returned -> NotificationSpec(
