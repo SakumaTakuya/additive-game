@@ -1,0 +1,17 @@
+## named_seed7_motif1
+seed=7
+constants=POC
+motifId=1
+roll=ResidentRoll(motifId=1, star=3, personalityId=0, color=NORMAL)
+
+## named_seed123456789_motif5
+seed=123456789
+constants=POC
+motifId=5
+roll=ResidentRoll(motifId=5, star=2, personalityId=8, color=NORMAL)
+
+## named_seed-99_motif10
+seed=-99
+constants=POC
+motifId=10
+roll=ResidentRoll(motifId=10, star=2, personalityId=6, color=NORMAL)
