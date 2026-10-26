@@ -1,0 +1,208 @@
+## poc_seed1
+seed=1
+constants=POC
+snapshot=ContextSnapshot(date=2026-10-21, timeBand=DAY, weather=SUNNY)
+party=[PartyMember(motifId=1, star=3, personalityId=0)]
+earlyReturn=false
+manaGained=30
+awakened=[ResidentRoll(motifId=10, star=4, personalityId=2, color=NORMAL)]
+log=
+  Encountered(index=0, motifId=1, atOffsetMin=17)
+  Failed(index=0)
+  Encountered(index=1, motifId=6, atOffsetMin=55)
+  Quelled(index=1)
+  Found(index=1, mana=10)
+  Encountered(index=2, motifId=8, atOffsetMin=62)
+  Failed(index=2)
+  Encountered(index=3, motifId=1, atOffsetMin=108)
+  Failed(index=3)
+  Encountered(index=4, motifId=10, atOffsetMin=112)
+  Failed(index=4)
+  Awakened(rollIndex=0)
+
+## demo_seed1
+seed=1
+constants=DEMO
+snapshot=ContextSnapshot(date=2026-10-21, timeBand=DAY, weather=SUNNY)
+party=[PartyMember(motifId=1, star=3, personalityId=0)]
+earlyReturn=false
+manaGained=30
+awakened=[ResidentRoll(motifId=10, star=5, personalityId=2, color=NORMAL)]
+log=
+  Encountered(index=0, motifId=1, atOffsetMin=0)
+  Failed(index=0)
+  Encountered(index=1, motifId=6, atOffsetMin=1)
+  Quelled(index=1)
+  Found(index=1, mana=10)
+  Encountered(index=2, motifId=8, atOffsetMin=1)
+  Failed(index=2)
+  Encountered(index=3, motifId=1, atOffsetMin=2)
+  Failed(index=3)
+  Encountered(index=4, motifId=10, atOffsetMin=2)
+  Failed(index=4)
+  Awakened(rollIndex=0)
+
+## poc_seed42
+seed=42
+constants=POC
+snapshot=ContextSnapshot(date=2026-10-25, timeBand=NIGHT, weather=RAIN)
+party=[PartyMember(motifId=4, star=5, personalityId=3), PartyMember(motifId=3, star=2, personalityId=7), PartyMember(motifId=7, star=4, personalityId=11)]
+earlyReturn=false
+manaGained=65
+awakened=[ResidentRoll(motifId=7, star=1, personalityId=2, color=NORMAL)]
+log=
+  Encountered(index=0, motifId=7, atOffsetMin=13)
+  Quelled(index=0)
+  Found(index=0, mana=10)
+  Encountered(index=1, motifId=8, atOffsetMin=18)
+  Quelled(index=1)
+  Found(index=1, mana=10)
+  Encountered(index=2, motifId=8, atOffsetMin=50)
+  Quelled(index=2)
+  Found(index=2, mana=10)
+  Awakened(rollIndex=0)
+
+## demo_seed42
+seed=42
+constants=DEMO
+snapshot=ContextSnapshot(date=2026-10-25, timeBand=NIGHT, weather=RAIN)
+party=[PartyMember(motifId=4, star=5, personalityId=3), PartyMember(motifId=3, star=2, personalityId=7), PartyMember(motifId=7, star=4, personalityId=11)]
+earlyReturn=false
+manaGained=65
+awakened=[ResidentRoll(motifId=7, star=1, personalityId=2, color=NORMAL), ResidentRoll(motifId=3, star=4, personalityId=9, color=NORMAL)]
+log=
+  Encountered(index=0, motifId=7, atOffsetMin=0)
+  Quelled(index=0)
+  Found(index=0, mana=10)
+  Encountered(index=1, motifId=8, atOffsetMin=0)
+  Quelled(index=1)
+  Found(index=1, mana=10)
+  Encountered(index=2, motifId=8, atOffsetMin=1)
+  Quelled(index=2)
+  Found(index=2, mana=10)
+  Awakened(rollIndex=0)
+  Awakened(rollIndex=1)
+
+## poc_seed-1
+seed=-1
+constants=POC
+snapshot=ContextSnapshot(date=2026-01-01, timeBand=EVENING, weather=SNOW)
+party=[]
+earlyReturn=false
+manaGained=20
+awakened=[ResidentRoll(motifId=6, star=2, personalityId=0, color=NORMAL)]
+log=
+  Encountered(index=0, motifId=7, atOffsetMin=66)
+  Failed(index=0)
+  Awakened(rollIndex=0)
+
+## demo_seed-1
+seed=-1
+constants=DEMO
+snapshot=ContextSnapshot(date=2026-01-01, timeBand=EVENING, weather=SNOW)
+party=[]
+earlyReturn=false
+manaGained=20
+awakened=[ResidentRoll(motifId=6, star=4, personalityId=0, color=RARE)]
+log=
+  Encountered(index=0, motifId=7, atOffsetMin=1)
+  Failed(index=0)
+  Awakened(rollIndex=0)
+
+## poc_seed20261025
+seed=20261025
+constants=POC
+snapshot=ContextSnapshot(date=2026-08-15, timeBand=DAY, weather=UNKNOWN)
+party=[PartyMember(motifId=10, star=1, personalityId=9), PartyMember(motifId=2, star=2, personalityId=2)]
+earlyReturn=false
+manaGained=50
+awakened=[ResidentRoll(motifId=3, star=2, personalityId=0, color=NORMAL)]
+log=
+  Encountered(index=0, motifId=5, atOffsetMin=8)
+  Failed(index=0)
+  Encountered(index=1, motifId=5, atOffsetMin=13)
+  Failed(index=1)
+  Encountered(index=2, motifId=4, atOffsetMin=26)
+  Failed(index=2)
+  Encountered(index=3, motifId=6, atOffsetMin=57)
+  Quelled(index=3)
+  Found(index=3, mana=10)
+  Encountered(index=4, motifId=3, atOffsetMin=67)
+  Quelled(index=4)
+  Found(index=4, mana=10)
+  Encountered(index=5, motifId=3, atOffsetMin=115)
+  Quelled(index=5)
+  Found(index=5, mana=10)
+  Awakened(rollIndex=0)
+
+## demo_seed20261025
+seed=20261025
+constants=DEMO
+snapshot=ContextSnapshot(date=2026-08-15, timeBand=DAY, weather=UNKNOWN)
+party=[PartyMember(motifId=10, star=1, personalityId=9), PartyMember(motifId=2, star=2, personalityId=2)]
+earlyReturn=false
+manaGained=50
+awakened=[ResidentRoll(motifId=3, star=2, personalityId=0, color=NORMAL)]
+log=
+  Encountered(index=0, motifId=5, atOffsetMin=0)
+  Failed(index=0)
+  Encountered(index=1, motifId=4, atOffsetMin=0)
+  Failed(index=1)
+  Encountered(index=2, motifId=5, atOffsetMin=0)
+  Failed(index=2)
+  Encountered(index=3, motifId=6, atOffsetMin=1)
+  Quelled(index=3)
+  Found(index=3, mana=10)
+  Encountered(index=4, motifId=3, atOffsetMin=1)
+  Quelled(index=4)
+  Found(index=4, mana=10)
+  Encountered(index=5, motifId=3, atOffsetMin=2)
+  Quelled(index=5)
+  Found(index=5, mana=10)
+  Awakened(rollIndex=0)
+
+## poc_seed987654321
+seed=987654321
+constants=POC
+snapshot=ContextSnapshot(date=2026-12-31, timeBand=NIGHT, weather=CLOUDY)
+party=[PartyMember(motifId=6, star=4, personalityId=5), PartyMember(motifId=9, star=3, personalityId=1)]
+earlyReturn=false
+manaGained=40
+awakened=[ResidentRoll(motifId=2, star=1, personalityId=6, color=NORMAL)]
+log=
+  Encountered(index=0, motifId=1, atOffsetMin=18)
+  Quelled(index=0)
+  Found(index=0, mana=10)
+  Encountered(index=1, motifId=1, atOffsetMin=59)
+  Failed(index=1)
+  Encountered(index=2, motifId=9, atOffsetMin=73)
+  Failed(index=2)
+  Encountered(index=3, motifId=1, atOffsetMin=106)
+  Quelled(index=3)
+  Found(index=3, mana=10)
+  Encountered(index=4, motifId=3, atOffsetMin=109)
+  Failed(index=4)
+  Awakened(rollIndex=0)
+
+## demo_seed987654321
+seed=987654321
+constants=DEMO
+snapshot=ContextSnapshot(date=2026-12-31, timeBand=NIGHT, weather=CLOUDY)
+party=[PartyMember(motifId=6, star=4, personalityId=5), PartyMember(motifId=9, star=3, personalityId=1)]
+earlyReturn=false
+manaGained=40
+awakened=[ResidentRoll(motifId=2, star=4, personalityId=6, color=NORMAL)]
+log=
+  Encountered(index=0, motifId=1, atOffsetMin=0)
+  Quelled(index=0)
+  Found(index=0, mana=10)
+  Encountered(index=1, motifId=9, atOffsetMin=1)
+  Failed(index=1)
+  Encountered(index=2, motifId=1, atOffsetMin=1)
+  Failed(index=2)
+  Encountered(index=3, motifId=1, atOffsetMin=2)
+  Quelled(index=3)
+  Found(index=3, mana=10)
+  Encountered(index=4, motifId=3, atOffsetMin=2)
+  Failed(index=4)
+  Awakened(rollIndex=0)
