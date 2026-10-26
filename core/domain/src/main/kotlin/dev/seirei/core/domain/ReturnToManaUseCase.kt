@@ -12,12 +12,17 @@ interface ReturnToManaStore {
     suspend fun loadPartyIds(): List<Long>
 
     /**
-     * Atomically deletes [residentIds] and adds [refund] mana. Must return false
-     * without writing if any of the residents no longer exists, including when
-     * concurrent calls race.
+     * Atomically deletes the given residents and adds the mana refunded for
+     * them. Eligibility is rechecked inside the same write: a resident who has
+     * become locked or joined the party since the preview is skipped, and
+     * contributes no refund. Returns the total mana actually refunded, or null
+     * when the write could not happen at all.
      */
-    suspend fun returnToMana(residentIds: List<Long>, refund: Int): Boolean
+    suspend fun returnToMana(targets: List<ReturnTarget>): Int?
 }
+
+/** One resident to return and the mana it refunds (design 03 §4.4). */
+data class ReturnTarget(val resident: Resident, val refund: Int)
 
 sealed interface ReturnToManaOutcome {
     data class Returned(val refund: Int) : ReturnToManaOutcome
@@ -40,7 +45,8 @@ fun manaRefundFor(resident: Resident): Int {
 
 /**
  * Returns the selected residents to mana (design 03 §4.4, manual selection only).
- * Locked residents and party members are always excluded. [preview] computes the
+ * Locked residents and party members are always excluded, and the exclusion is
+ * rechecked atomically by the store at write time. [preview] computes the
  * total without writing; the UI uses it before confirming.
  */
 class ReturnToManaUseCase(
@@ -50,12 +56,12 @@ class ReturnToManaUseCase(
         eligible(ids).sumOf(::manaRefundFor)
 
     suspend fun invoke(ids: List<Long>): ReturnToManaOutcome {
-        val targets = eligible(ids)
+        val targets = eligible(ids).map { ReturnTarget(it, manaRefundFor(it)) }
         if (targets.isEmpty()) return ReturnToManaOutcome.NoOp
 
-        val refund = targets.sumOf(::manaRefundFor)
-        return if (store.returnToMana(targets.map(Resident::id), refund)) {
-            ReturnToManaOutcome.Returned(refund)
+        val refunded = store.returnToMana(targets) ?: return ReturnToManaOutcome.NoOp
+        return if (refunded > 0) {
+            ReturnToManaOutcome.Returned(refunded)
         } else {
             ReturnToManaOutcome.NoOp
         }

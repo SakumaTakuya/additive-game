@@ -77,6 +77,28 @@ class ReturnToManaTest {
     }
 
     @Test
+    fun `書き込み時点でロック・編成入りした住人は還元から外れる`() = runTest {
+        // プレビュー後に並行して状態が変わったケース：書き込み側が同じ
+        // トランザクションで再チェックし、対象外になった分は還元しない。
+        val store = FakeReturnToManaStore(
+            residents = listOf(
+                aResident(id = 1L, star = 1, colorTier = ColorTier.NORMAL),
+                aResident(id = 2L, star = 1, colorTier = ColorTier.NORMAL),
+                aResident(id = 3L, star = 1, colorTier = ColorTier.NORMAL),
+            ),
+            partyIds = emptyList(),
+            lockOnWrite = setOf(2L),
+            joinPartyOnWrite = setOf(3L),
+        )
+
+        val outcome = useCase(store).invoke(listOf(1L, 2L, 3L))
+
+        assertEquals(ReturnToManaOutcome.Returned(refund = 10), outcome)
+        assertEquals(10, store.manaAdded)
+        assertEquals(listOf(2L, 3L), store.remaining.map(Resident::id))
+    }
+
+    @Test
     fun `還元額は星と色の表どおり`() {
         val cases = listOf(
             Triple(1, ColorTier.NORMAL, 10),
@@ -95,6 +117,8 @@ class ReturnToManaTest {
     private class FakeReturnToManaStore(
         residents: List<Resident>,
         private val partyIds: List<Long>,
+        private val lockOnWrite: Set<Long> = emptySet(),
+        private val joinPartyOnWrite: Set<Long> = emptySet(),
     ) : ReturnToManaStore {
         val remaining = residents.toMutableList()
         var manaAdded: Int = 0
@@ -107,13 +131,22 @@ class ReturnToManaTest {
 
         override suspend fun loadPartyIds(): List<Long> = partyIds
 
-        override suspend fun returnToMana(residentIds: List<Long>, refund: Int): Boolean {
+        override suspend fun returnToMana(targets: List<ReturnTarget>): Int? {
             writeCalls++
-            val targets = remaining.filter { it.id in residentIds }
-            if (targets.size != residentIds.size) return false
-            remaining.removeAll(targets)
-            manaAdded += refund
-            return true
+            var refunded = 0
+            for (target in targets) {
+                val current = remaining.firstOrNull { it.id == target.resident.id } ?: continue
+                // Recheck eligibility as of the write, like the real transaction.
+                if (current.locked || current.id in lockOnWrite ||
+                    current.id in partyIds || current.id in joinPartyOnWrite
+                ) {
+                    continue
+                }
+                remaining.remove(current)
+                refunded += target.refund
+            }
+            manaAdded += refunded
+            return refunded
         }
     }
 }
