@@ -17,6 +17,7 @@ android {
 
 dependencies {
     implementation(project(":core:database"))
+    implementation(libs.androidx.room.runtime)
     implementation(project(":core:domain"))
     implementation(project(":core:roll"))
     implementation(project(":core:model"))

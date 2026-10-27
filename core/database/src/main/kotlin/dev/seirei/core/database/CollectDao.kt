@@ -6,7 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import androidx.sqlite.SQLiteConstraintException
+import androidx.sqlite.SQLiteException
 
 /** Raised when a collect is attempted for a session that already has a receipt. */
 class DuplicateCollectionException(sessionId: Long) :
@@ -42,7 +42,7 @@ abstract class CollectDao {
         if (receiptExists(sessionId)) throw DuplicateCollectionException(sessionId)
         try {
             insertReceipt(CollectionReceiptEntity(sessionId = sessionId))
-        } catch (e: SQLiteConstraintException) {
+        } catch (e: SQLiteException) {
             throw DuplicateCollectionException(sessionId)
         }
         insertResidents(awakened)
