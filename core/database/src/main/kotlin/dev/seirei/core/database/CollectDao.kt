@@ -6,7 +6,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import androidx.sqlite.SQLiteException
 
 /** Raised when a collect is attempted for a session that already has a receipt. */
 class DuplicateCollectionException(sessionId: Long) :
@@ -22,8 +21,8 @@ abstract class CollectDao {
     @Query("SELECT EXISTS(SELECT 1 FROM collection_receipt WHERE sessionId = :sessionId)")
     abstract suspend fun receiptExists(sessionId: Long): Boolean
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
-    abstract suspend fun insertReceipt(receipt: CollectionReceiptEntity)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract suspend fun insertReceipt(receipt: CollectionReceiptEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     abstract suspend fun insertResidents(residents: List<ResidentEntity>)
@@ -40,9 +39,10 @@ abstract class CollectDao {
     @Transaction
     open suspend fun collect(sessionId: Long, awakened: List<ResidentEntity>, manaGained: Int) {
         if (receiptExists(sessionId)) throw DuplicateCollectionException(sessionId)
-        try {
-            insertReceipt(CollectionReceiptEntity(sessionId = sessionId))
-        } catch (e: SQLiteException) {
+        // IGNORE reports a receipt-key conflict as a -1 row id instead of an
+        // exception, so only a genuine duplicate is translated here. Other
+        // storage failures (disk full, I/O, ...) still throw and propagate.
+        if (insertReceipt(CollectionReceiptEntity(sessionId = sessionId)) == -1L) {
             throw DuplicateCollectionException(sessionId)
         }
         insertResidents(awakened)
