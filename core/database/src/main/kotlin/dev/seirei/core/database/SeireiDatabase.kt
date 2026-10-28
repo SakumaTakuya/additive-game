@@ -23,15 +23,14 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 @TypeConverters(RoomConverters::class)
 abstract class SeireiDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
-    abstract fun collectDao(): CollectDao
-    abstract fun sessionWriteDao(): SessionWriteDao
-    abstract fun namedAwakenDao(): NamedAwakenDao
-    abstract fun returnToManaDao(): ReturnToManaDao
-    abstract fun seedInitialDao(): SeedInitialDao
     abstract fun residentDao(): ResidentDao
     abstract fun manaDao(): ManaDao
     abstract fun collectionReceiptDao(): CollectionReceiptDao
     abstract fun appSettingsDao(): AppSettingsDao
+    abstract fun sessionWriteDao(): SessionWriteDao
+    abstract fun namedAwakenDao(): NamedAwakenDao
+    abstract fun returnToManaDao(): ReturnToManaDao
+    abstract fun seedInitialDao(): SeedInitialDao
 
     companion object {
         internal val SINGLETON_ID_CONSTRAINTS = object : Callback() {
