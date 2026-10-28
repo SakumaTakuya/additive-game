@@ -26,7 +26,7 @@ class CollectTransactionTest {
     private val sessionId = 7L
 
     @Test
-    fun collectAppliesReceiptResidentsManaAndCollectedFlagTogether() = runBlocking {
+    fun `回収するとレシート・住人・魔力が記録され回収済みになる`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             seed(database, manaBalance = 100)
@@ -49,7 +49,7 @@ class CollectTransactionTest {
     }
 
     @Test
-    fun secondCollectFailsAndDoesNotDoubleCount() = runBlocking {
+    fun `同じセッションを二度回収すると失敗し二重に加算されない`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             seed(database, manaBalance = 100)
@@ -69,7 +69,7 @@ class CollectTransactionTest {
     }
 
     @Test
-    fun failureWhileInsertingResidentsRollsBackEverything() = runBlocking {
+    fun `住人の挿入に失敗すると全体がロールバックされる`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             seed(database, manaBalance = 100)
@@ -93,7 +93,7 @@ class CollectTransactionTest {
     }
 
     @Test
-    fun collectCreatesManaRowWhenMissing() = runBlocking {
+    fun `魔力の行がないときは回収で新しい行が作られる`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             seed(database, manaBalance = null)
