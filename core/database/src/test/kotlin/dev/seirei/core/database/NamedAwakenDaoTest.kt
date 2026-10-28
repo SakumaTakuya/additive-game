@@ -19,7 +19,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [35])
 class NamedAwakenDaoTest {
     @Test
-    fun insufficientBalanceChangesNothing() = runBlocking {
+    fun `魔力がコストに足りないと覚醒せず住人も残高も変わらない`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             seed(database, manaBalance = 399)
@@ -36,7 +36,7 @@ class NamedAwakenDaoTest {
     }
 
     @Test
-    fun sufficientBalanceInsertsResidentAndSubtractsCostTogether() = runBlocking {
+    fun `魔力が足りていれば住人が増えて残高からコストが引かれる`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             seed(database, manaBalance = 1_000)
@@ -55,7 +55,7 @@ class NamedAwakenDaoTest {
     }
 
     @Test
-    fun undiscoveredMotifChangesNothing() = runBlocking {
+    fun `モチーフが未発見だと覚醒せず住人も残高も変わらない`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             seed(database, manaBalance = 1_000)

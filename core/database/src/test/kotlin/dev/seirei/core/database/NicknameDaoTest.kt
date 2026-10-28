@@ -17,7 +17,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [35])
 class NicknameDaoTest {
     @Test
-    fun emptyNicknameIsStoredAsNull() = runBlocking {
+    fun `空のニックネームを設定するとnullで保存される`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             val dao = database.residentDao()
@@ -32,7 +32,7 @@ class NicknameDaoTest {
     }
 
     @Test
-    fun nicknameIsTrimmedAndControlCharactersAreRemoved() = runBlocking {
+    fun `ニックネームの前後の空白と制御文字は取り除かれて保存される`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             val dao = database.residentDao()

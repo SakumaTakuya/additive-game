@@ -21,7 +21,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [35])
 class SeedInitialDaoTest {
     @Test
-    fun callingTwiceGrantsOnlyOneResident() = runBlocking {
+    fun `初期付与を二回呼んでも住人は一人だけ付与される`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             val dao = database.seedInitialDao()
@@ -36,7 +36,7 @@ class SeedInitialDaoTest {
     }
 
     @Test
-    fun existingSessionRowBlocksTheGrant() = runBlocking {
+    fun `セッションが既にあると初期付与されず住人は増えない`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             database.sessionDao().upsert(

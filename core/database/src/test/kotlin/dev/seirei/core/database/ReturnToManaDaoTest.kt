@@ -22,7 +22,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [35])
 class ReturnToManaDaoTest {
     @Test
-    fun lockedAndPartyMembersAreNotDeleted() = runBlocking {
+    fun `保護中と編成中の住人は還元対象に渡しても削除されず還元にも数えない`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             seedMana(database, balance = 100)
@@ -50,7 +50,7 @@ class ReturnToManaDaoTest {
     }
 
     @Test
-    fun residentLockedAfterPreviewIsSkippedAtWriteTime() = runBlocking {
+    fun `書き込み時点で保護されている住人は還元されず残る`() = runBlocking {
         val database = createInMemoryDatabase()
         try {
             seedMana(database, balance = 0)
