@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
+import dev.seirei.core.model.normalizeNickname
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -23,18 +24,34 @@ interface SessionDao {
 }
 
 @Dao
-interface ResidentDao {
+abstract class ResidentDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insert(resident: ResidentEntity): Long
+    abstract suspend fun insert(resident: ResidentEntity): Long
 
     @Query("SELECT * FROM resident ORDER BY id")
-    fun observeAll(): Flow<List<ResidentEntity>>
+    abstract fun observeAll(): Flow<List<ResidentEntity>>
 
     @Query("SELECT * FROM resident WHERE id = :id")
-    suspend fun getById(id: Long): ResidentEntity?
+    abstract suspend fun getById(id: Long): ResidentEntity?
 
     @Query("SELECT COUNT(*) FROM resident")
-    suspend fun count(): Int
+    abstract suspend fun count(): Int
+
+    @Query("UPDATE resident SET nickname = :nickname WHERE id = :id")
+    abstract suspend fun updateNicknameRow(id: Long, nickname: String?)
+
+    /**
+     * ニックネームの単一列更新（設計書03 §4.5）。改行・制御文字を取り除き、
+     * モデルの正規化（前後空白の除去・空文字→NULL・最大10文字）を適用してから書く。
+     */
+    open suspend fun updateNickname(id: Long, nickname: String?) {
+        val withoutControls = nickname?.filterNot { it.isISOControl() }
+        updateNicknameRow(id, normalizeNickname(withoutControls))
+    }
+
+    /** 保護（locked）の切り替え（設計書03 §4.5）。 */
+    @Query("UPDATE resident SET locked = :locked WHERE id = :id")
+    abstract suspend fun updateLocked(id: Long, locked: Boolean)
 }
 
 @Dao

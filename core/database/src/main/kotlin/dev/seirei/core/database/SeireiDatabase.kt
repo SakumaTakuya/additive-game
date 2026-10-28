@@ -28,6 +28,10 @@ abstract class SeireiDatabase : RoomDatabase() {
     abstract fun manaDao(): ManaDao
     abstract fun collectionReceiptDao(): CollectionReceiptDao
     abstract fun appSettingsDao(): AppSettingsDao
+    abstract fun sessionWriteDao(): SessionWriteDao
+    abstract fun namedAwakenDao(): NamedAwakenDao
+    abstract fun returnToManaDao(): ReturnToManaDao
+    abstract fun seedInitialDao(): SeedInitialDao
 
     companion object {
         internal val SINGLETON_ID_CONSTRAINTS = object : Callback() {
@@ -69,3 +73,4 @@ abstract class SeireiDatabase : RoomDatabase() {
                 .build()
     }
 }
+
