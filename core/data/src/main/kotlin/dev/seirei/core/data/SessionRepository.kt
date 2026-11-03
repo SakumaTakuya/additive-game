@@ -1,5 +1,7 @@
 package dev.seirei.core.data
 
+import androidx.room.Transactor
+import androidx.room.useWriterConnection
 import dev.seirei.core.database.SeireiDatabase
 import dev.seirei.core.domain.PartyPresetStore
 import dev.seirei.core.domain.SessionStore
@@ -39,10 +41,17 @@ class SessionRepository(
      * 同じセッション行の partyIds で、編成画面の変更をその場で永続化する。
      * セッション行が存在しないとき（初回点火前）は保存先がないため何もしない
      * （ダミー行を作ると設計書03 §4.6 のガードと衝突する。issue #50 の計画で決定）。
+     * 読み取りから書き込みまでを同一トランザクションで行う。点火による行置換と
+     * 並行したときに、古い行の内容（collected など）を新しい行へ上書きしないため。
      */
     suspend fun savePartyPreset(partyIds: List<Long>) {
-        val current = database.sessionDao().get() ?: return
-        if (current.partyIds == partyIds) return
-        database.sessionDao().upsert(current.copy(partyIds = partyIds))
+        database.useWriterConnection { transactor ->
+            transactor.withTransaction(Transactor.SQLiteTransactionType.IMMEDIATE) {
+                val current = database.sessionDao().get()
+                if (current != null && current.partyIds != partyIds) {
+                    database.sessionDao().upsert(current.copy(partyIds = partyIds))
+                }
+            }
+        }
     }
 }
