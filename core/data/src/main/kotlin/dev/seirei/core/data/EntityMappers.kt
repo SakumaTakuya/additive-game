@@ -1,5 +1,6 @@
 package dev.seirei.core.data
 
+import dev.seirei.core.database.ManaEntity
 import dev.seirei.core.database.ResidentEntity
 import dev.seirei.core.database.SessionEntity
 import dev.seirei.core.model.ContextSnapshot
@@ -56,3 +57,8 @@ internal fun ResidentRoll.toEntity(sourceSessionId: Long, acquiredAt: Instant): 
         acquiredAt = acquiredAt,
         sourceSessionId = sourceSessionId,
     )
+
+internal fun ManaEntity.toDomain(): ManaBalance = ManaBalance(
+    balance = balance,
+    lifetimeEarned = lifetimeEarned,
+)
